@@ -10,6 +10,9 @@ function generateRandomNumbers() {
         return;
     }
 
+    localStorage.setItem("numOfIntegers", numOfIntegers);
+    localStorage.setItem("lowerBound", lowerBound);
+    localStorage.setItem("upperBound", upperBound);
 
     while (uniqueIntegers.size < numOfIntegers) {
         var randomInt = Math.floor(Math.random() * (upperBound - lowerBound + 1)) + lowerBound;
@@ -139,4 +142,8 @@ $(document).ready(function() {
     });
     $("#playSounds").click(playSound);
     $("#stopSounds").click(stopSound);
+
+    $("#numOfIntegers").val(localStorage.getItem("numOfIntegers") ?? 30);
+    $("#lowerBound").val(localStorage.getItem("lowerBound") ?? 1);
+    $("#upperBound").val(localStorage.getItem("upperBound") ?? 100);
 });
