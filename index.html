@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hear and Learn Numbers: Enhance Your German Skills (1-100)</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body>
+    <h1 class="text-4xl font-bold text-center py-8 mb-8">Hear and Learn Numbers: Enhance Your German Skills (1-100)</h1>
+    <div class="flex px-8">
+        <div class="w-1/2 h-full">
+            <form id="randomNumberForm" class="max-w-md mx-auto">
+                <label for="numOfIntegers" class="block mb-2">Number of random integers:</label>
+                <input type="number" id="numOfIntegers" name="numOfIntegers" value="30" min="1" max="100" required class="w-full px-4 py-2 mb-4 border border-gray-300 rounded-md">
+
+                <label for="lowerBound" class="block mb-2">Lower bound:</label>
+                <input type="number" id="lowerBound" name="lowerBound" min="1" value="1" required class="w-full px-4 py-2 mb-4 border border-gray-300 rounded-md">
+
+                <label for="upperBound" class="block mb-2">Upper bound:</label>
+                <input type="number" id="upperBound" name="upperBound" max="100" value="100" required class="w-full px-4 py-2 mb-4 border border-gray-300 rounded-md">
+
+                <button id="generateRandomNumbers" type="button" class="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600">Generate</button>
+            </form>
+        </div>
+        <div class="w-1/2 h-full">
+            <textarea id="randomNumbers" name="random-numbers" id="" cols="30" rows="12" readonly="readonly" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"></textarea>
+            <button id="playSounds" type="button" class="w-full px-4 py-2 text-white bg-blue-500 rounded-md hover:bg-blue-600">Play Sounds</button>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="./script.js"></script>
+</body>
+</html>
