@@ -64,25 +64,28 @@ function validateInput(numOfIntegers, lowerBound, upperBound) {
     return true;
 }
 
-function lockPlaySoundButton() {
-    $("#playSounds")
+function lockSoundControlls() {
+    $("#playSounds, #playbackRate, #stopSounds")
     .prop("disabled", true)
     .addClass("cursor-not-allowed");
     return true;
 }
 
-function unlockPlaySoundButton() {
-    $("#playSounds")
+function unlockSoundControlls() {
+    $("#playSounds, #playbackRate, #stopSounds")
     .prop("disabled", false)
     .removeClass("cursor-not-allowed");
     return false;
 }
 
 
-var playSoundButtonIsLocked = unlockPlaySoundButton();
+var playSoundButtonIsLocked = unlockSoundControlls();
 
-function playSound() {
-    var numbers = JSON.parse(localStorage.getItem("randomNumbers"));
+function playSound(playbackRate) {
+    var numbers = JSON.parse(localStorage.getItem("randomNumbers")).filter(function (value) {
+        return value > 0 && value <= 100;
+    });
+
     if (!possibleToPlay()) {
         return;
     }
@@ -92,13 +95,14 @@ function playSound() {
 
         function playNextSound() {
             if (index >= numbers.length) {
-                playSoundButtonIsLocked = unlockPlaySoundButton();
+                playSoundButtonIsLocked = unlockSoundControlls();
                 return;
             }
 
             var number = numbers[index];
             var soundFile = "./zehlen-von-01-bis-100/zahl-" + number + ".mp3";
             var audio = new Audio(soundFile);
+            audio.playbackRate = playbackRate;
             audio.play();
 
             audio.onended = function () {
@@ -111,7 +115,7 @@ function playSound() {
     }
 
     if (!playSoundButtonIsLocked) {
-        playSoundButtonIsLocked = lockPlaySoundButton();
+        playSoundButtonIsLocked = lockSoundControlls();
         playSoundSequentially(numbers);
     }
 }
@@ -140,8 +144,20 @@ $(document).ready(function() {
         generateRandomNumbers();
         displayRandomNumbers();
     });
-    $("#playSounds").click(playSound);
+    $("#playSounds").click(function() {
+        playSound($('#playbackRate').val());
+    });
     $("#stopSounds").click(stopSound);
+
+    $("#playbackRate").on('change', function() {
+        var playbackRate = $(this).val();
+        $("#playbackSpeedValue").text(playbackRate);
+        localStorage.setItem("playbackRate", playbackRate);
+    }).ready(function() {
+        var playbackRate = localStorage.getItem("playbackRate") ?? 1;
+        $("#playbackRate").val(playbackRate);
+        $("#playbackSpeedValue").text(playbackRate);
+    });
 
     $("#numOfIntegers").val(localStorage.getItem("numOfIntegers") ?? 30);
     $("#lowerBound").val(localStorage.getItem("lowerBound") ?? 1);
