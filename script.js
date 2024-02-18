@@ -1,165 +1,281 @@
-function generateRandomNumbers() {
-    var lowerBound = Math.max(1, parseInt($("#lowerBound").val()));
-    var upperBound = Math.min(100, parseInt($("#upperBound").val()));
-    var numOfIntegers = Math.min(parseInt($("#numOfIntegers").val()), Math.max(1, upperBound - lowerBound + 1));
-    var uniqueIntegers = new Set();
+const playingIsStarted = new Event("playingIsStarted");
+const playingIsFinished = new Event("playingIsFinished");
+const stopPlayback = new Event("stopPlayback");
 
-    isValid = validateInput(numOfIntegers, lowerBound, upperBound);
-    if (!isValid) {
-        alert("Please enter valid numbers for all fields.");
-        return;
-    }
+class LocalStorageOverlay {
+  static set numOfIntegers(value) {
+    localStorage.setItem("numOfIntegers", value);
+  }
 
-    localStorage.setItem("numOfIntegers", numOfIntegers);
-    localStorage.setItem("lowerBound", lowerBound);
-    localStorage.setItem("upperBound", upperBound);
+  static get numOfIntegers() {
+    return parseInt(localStorage.getItem("numOfIntegers") ?? 30);
+  }
 
-    while (uniqueIntegers.size < numOfIntegers) {
-        var randomInt = Math.floor(Math.random() * (upperBound - lowerBound + 1)) + lowerBound;
-        uniqueIntegers.add(randomInt);
-    }
+  static set lowerBound(value) {
+    localStorage.setItem("lowerBound", value);
+  }
 
-    localStorage.setItem("randomNumbers", JSON.stringify(Array.from(uniqueIntegers)));
+  static get lowerBound() {
+    return parseInt(localStorage.getItem("lowerBound") ?? 1);
+  }
+
+  static set upperBound(value) {
+    localStorage.setItem("upperBound", value);
+  }
+
+  static get upperBound() {
+    return parseInt(localStorage.getItem("upperBound") ?? 100);
+  }
+
+  static set playbackRate(value) {
+    localStorage.setItem("playbackRate", value);
+  }
+
+  static get playbackRate() {
+    return localStorage.getItem("playbackRate") ?? "1";
+  }
+
+  static set randomNumbers(numbers) {
+    numbers = numbers.filter(function (number) {
+      return number > 0 && number <= 100;
+    });
+
+    localStorage.setItem("randomNumbers", JSON.stringify(numbers));
+  }
+
+  static get randomNumbers() {
+    return JSON.parse(localStorage.getItem("randomNumbers")) ?? [];
+  }
 }
 
-function displayRandomNumbers() {
-    const numbers = JSON.parse(localStorage.getItem("randomNumbers"));
-    if(!possibleToPlay()) {
-        return
-    }
-    $("#randomNumbers").val(numbers.join(", "));
+function generateRandomNumbers(numOfIntegers, lowerBound, upperBound) {
+  var uniqueIntegers = new Set();
+
+  isValid = validateInput(numOfIntegers, lowerBound, upperBound);
+  if (!isValid) {
+    alert("Please enter valid numbers for all fields.");
+    return;
+  }
+
+  while (uniqueIntegers.size < numOfIntegers) {
+    var randomInt =
+      Math.floor(Math.random() * (upperBound - lowerBound + 1)) + lowerBound;
+    uniqueIntegers.add(randomInt);
+  }
+
+  return Array.from(uniqueIntegers);
+}
+
+function displayRandomNumbers(randomNumbers) {
+  $("#randomNumbers").val(randomNumbers.join(", "));
 }
 
 function validateInput(numOfIntegers, lowerBound, upperBound) {
-    if (isNaN(numOfIntegers) || isNaN(lowerBound) || isNaN(upperBound)) {
-        alert("Please enter valid numbers for all fields.");
-        return false;
-    }
-
-    if(numOfIntegers > upperBound - lowerBound + 1) {
-        alert("The number of integers must be less than or equal to the range of integers.");
-        return false;
-    }
-
-    if (numOfIntegers < 1 || numOfIntegers > 100) {
-        alert("Please enter a number between 1 and 100 for the number of integers.");
-        return false;
-    }
-
-    if (lowerBound < 1 || lowerBound > 100) {
-        alert("Please enter a number between 1 and 100 for the lower bound.");
-        return false;
-    }
-
-    if (upperBound < 1 || upperBound > 100) {
-        alert("Please enter a number between 1 and 100 for the upper bound.");
-        return false;
-    }
-
-    if (lowerBound > upperBound) {
-        alert("The lower bound must be less than or equal to the upper bound.");
-        return false;
-    }
-
-    return true;
-}
-
-function lockSoundControlls() {
-    $("#playSounds, #playbackRate, #stopSounds")
-    .prop("disabled", true)
-    .addClass("cursor-not-allowed");
-    return true;
-}
-
-function unlockSoundControlls() {
-    $("#playSounds, #playbackRate, #stopSounds")
-    .prop("disabled", false)
-    .removeClass("cursor-not-allowed");
+  if (isNaN(numOfIntegers) || isNaN(lowerBound) || isNaN(upperBound)) {
+    alert("Please enter valid numbers for all fields.");
     return false;
+  }
+
+  if (numOfIntegers > upperBound - lowerBound + 1) {
+    alert(
+      "The number of integers must be less than or equal to the range of integers."
+    );
+    return false;
+  }
+
+  if (numOfIntegers < 1 || numOfIntegers > 100) {
+    alert(
+      "Please enter a number between 1 and 100 for the number of integers."
+    );
+    return false;
+  }
+
+  if (lowerBound < 1 || lowerBound > 100) {
+    alert("Please enter a number between 1 and 100 for the lower bound.");
+    return false;
+  }
+
+  if (upperBound < 1 || upperBound > 100) {
+    alert("Please enter a number between 1 and 100 for the upper bound.");
+    return false;
+  }
+
+  if (lowerBound > upperBound) {
+    alert("The lower bound must be less than or equal to the upper bound.");
+    return false;
+  }
+
+  return true;
 }
 
+class Modal {
+  static toggle(modalId = "modal-id") {
+    const modal = $("#" + modalId);
+    if (modal.hasClass("hidden")) {
+      Modal.showModal(modal);
+    } else {
+      Modal.hideModal(modal);
+    }
+  }
 
-var playSoundButtonIsLocked = unlockSoundControlls();
+  static hide(modalId = "modal-id") {
+    const modal = $("#" + modalId);
+    modal.addClass("hidden");
+  }
 
-function playSound(playbackRate) {
-    var numbers = JSON.parse(localStorage.getItem("randomNumbers")).filter(function (value) {
-        return value > 0 && value <= 100;
+  static show(modalId = "modal-id") {
+    const modal = $("#" + modalId);
+    modal.removeClass("hidden");
+  }
+}
+
+class SoundController {
+  static lockSoundControlls() {
+    $("#playSounds, #playbackRate, #stopSounds")
+      .prop("disabled", true)
+      .addClass("cursor-not-allowed");
+  }
+
+  static unlockSoundControlls() {
+    $("#playSounds, #playbackRate, #stopSounds")
+      .prop("disabled", false)
+      .removeClass("cursor-not-allowed");
+  }
+}
+
+function playSound(numbers, playbackRate, callback) {
+  var index = 0;
+
+  function playNextSound() {
+    if (index >= numbers.length) {
+      document.dispatchEvent(playingIsFinished);
+      return;
+    }
+    document.dispatchEvent(playingIsStarted);
+
+    var number = numbers[index];
+    var soundFile = "./zehlen-von-01-bis-100/zahl-" + number + ".mp3";
+    var audio = new Audio(soundFile);
+    audio.playbackRate = playbackRate;
+
+    callback(number, audio).then((result) => {
+      //   if (result.stop !== true) {
+      audio.play();
+      //   }
     });
 
-    if (!possibleToPlay()) {
-        return;
-    }
+    audio.onended = function () {
+      index++;
+      playNextSound();
+    };
+  }
 
-    function playSoundSequentially(numbers) {
-        var index = 0;
-
-        function playNextSound() {
-            if (index >= numbers.length) {
-                playSoundButtonIsLocked = unlockSoundControlls();
-                return;
-            }
-
-            var number = numbers[index];
-            var soundFile = "./zehlen-von-01-bis-100/zahl-" + number + ".mp3";
-            var audio = new Audio(soundFile);
-            audio.playbackRate = playbackRate;
-            audio.play();
-
-            audio.onended = function () {
-                index++;
-                playNextSound();
-            };
-        }
-
-        playNextSound();
-    }
-
-    if (!playSoundButtonIsLocked) {
-        playSoundButtonIsLocked = lockSoundControlls();
-        playSoundSequentially(numbers);
-    }
+  playNextSound();
 }
 
-function stopSound() {
-    var audioElements = document.getElementsByTagName("audio");
-    for (var i = 0; i < audioElements.length; i++) {
-        audioElements[i].pause();
-        audioElements[i].currentTime = 0;
-    }
+function stopSound(audio) {
+  audio.pause();
+  audio.stop = true;
 }
 
 function possibleToPlay() {
-    var numbers = JSON.parse(localStorage.getItem("randomNumbers"));
-    if(numbers == null) {
-        $("#playSounds").addClass("cursor-not-allowed"); // Add the "invisible" class to hide the button
-        return false;
-    }
-    $("#playSounds").removeClass("cursor-not-allowed"); // Add the "invisible" class to hide the button
-    return true;
+  var numbers = LocalStorageOverlay.randomNumbers;
+  if (numbers.length === 0) {
+    $("#playSounds").addClass("cursor-not-allowed");
+    return false;
+  }
+  $("#playSounds").removeClass("cursor-not-allowed");
+  return true;
 }
 
-$(document).ready(function() {
-    displayRandomNumbers();
-    $("#generateRandomNumbers").click(function() {
-        generateRandomNumbers();
-        displayRandomNumbers();
-    });
-    $("#playSounds").click(function() {
-        playSound($('#playbackRate').val());
-    });
-    $("#stopSounds").click(stopSound);
+function initializeThePage() {
+  displayRandomNumbers(LocalStorageOverlay.randomNumbers);
 
-    $("#playbackRate").on('change', function() {
-        var playbackRate = $(this).val();
-        $("#playbackSpeedValue").text(playbackRate);
-        localStorage.setItem("playbackRate", playbackRate);
-    }).ready(function() {
-        var playbackRate = localStorage.getItem("playbackRate") ?? 1;
-        $("#playbackRate").val(playbackRate);
-        $("#playbackSpeedValue").text(playbackRate);
-    });
+  $("#playbackRate").val(LocalStorageOverlay.playbackRate);
+  $("#playbackSpeedValue").text(LocalStorageOverlay.playbackRate);
 
-    $("#numOfIntegers").val(localStorage.getItem("numOfIntegers") ?? 30);
-    $("#lowerBound").val(localStorage.getItem("lowerBound") ?? 1);
-    $("#upperBound").val(localStorage.getItem("upperBound") ?? 100);
+  $("#numOfIntegers").val(LocalStorageOverlay.numOfIntegers);
+  $("#lowerBound").val(LocalStorageOverlay.lowerBound);
+  $("#upperBound").val(LocalStorageOverlay.upperBound);
+}
+
+document.addEventListener("playingIsStarted", () => {
+  SoundController.lockSoundControlls();
+  Modal.show("modal-id");
 });
+
+document.addEventListener("playingIsFinished", () => {
+  SoundController.unlockSoundControlls();
+  Modal.hide("modal-id");
+});
+
+document.addEventListener("stopPlayback", (event) => {
+  console.log("stopPlayback", {
+    event,
+  });
+  event.audio.pause();
+  event.audio.stop = true;
+
+  SoundController.unlockSoundControlls();
+  Modal.hide("modal-id");
+});
+
+$(document)
+  .ready(initializeThePage)
+  .ready(function () {
+    $("#generateRandomNumbers").click(function () {
+      LocalStorageOverlay.lowerBound = Math.max(
+        1,
+        parseInt($("#lowerBound").val())
+      );
+      LocalStorageOverlay.upperBound = Math.min(
+        100,
+        parseInt($("#upperBound").val())
+      );
+      LocalStorageOverlay.numOfIntegers = Math.min(
+        parseInt($("#numOfIntegers").val()),
+        Math.max(
+          1,
+          LocalStorageOverlay.upperBound - LocalStorageOverlay.lowerBound + 1
+        )
+      );
+
+      LocalStorageOverlay.randomNumbers = generateRandomNumbers(
+        LocalStorageOverlay.numOfIntegers,
+        LocalStorageOverlay.lowerBound,
+        LocalStorageOverlay.upperBound
+      );
+
+      displayRandomNumbers(LocalStorageOverlay.randomNumbers);
+    });
+
+    $("#playSounds").on("click", function () {
+      if (!possibleToPlay()) {
+        return;
+      }
+      playSound(
+        LocalStorageOverlay.randomNumbers,
+        LocalStorageOverlay.playbackRate,
+        function (number, audio) {
+          $("#modal-id #numberToShow").text(number);
+
+          stopPlayback.audio = audio;
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              return resolve();
+            }, 550);
+          });
+        }
+      );
+    });
+
+    $("#stopPlayback").on("click", () => {
+      document.dispatchEvent(stopPlayback);
+    });
+
+    $("#playbackRate").on("change", function () {
+      var playbackRate = $(this).val();
+      $("#playbackSpeedValue").text(playbackRate);
+      LocalStorageOverlay.playbackRate = playbackRate;
+    });
+  });
